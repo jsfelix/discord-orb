@@ -1,0 +1,29 @@
+version: 2.1
+orbs:
+  discord-notifier: jsfelix/discord-orb@0.1.0
+
+commands:
+  notify-discord:
+    description: |
+      Notify Discord about the result of the CircleCI pipeline.
+    steps:
+      - run:
+          name: Install Requests library
+          command: pip install requests
+      - run:
+          name: Notify Discord
+          command: |
+            DISCORD_WEBHOOK_URL=$DISCORD_WEBHOOK_URL
+            REPO_NAME=$CIRCLE_PROJECT_REPONAME
+            BRANCH=$CIRCLE_BRANCH
+            USER=$CIRCLE_USERNAME
+            EMOJI=""
+            RESULT=$CIRCLE_JOB
+            if [ "$RESULT" = "success" ]; then
+              MESSAGE="✅ CircleCI pipeline for branch '$BRANCH' in repository '$REPO_NAME' has completed successfully by @$USER. $CIRCLE_BUILD_URL"
+              EMOJI=":white_check_mark:"
+            else
+              MESSAGE="❌ CircleCI pipeline for branch '$BRANCH' in repository '$REPO_NAME' has failed. Please check the build status. $CIRCLE_BUILD_URL"
+              EMOJI=":red_circle:"
+            fi
+            curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"$EMOJI $MESSAGE\"}" $DISCORD_WEBHOOK_URL
